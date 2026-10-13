@@ -493,5 +493,36 @@
   <div class="toast" id="toast"></div>
 </div>
 <script src="app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+  // 1. TA CONFIG - Remplace par la tienne
+  var firebaseConfig = {
+    apiKey: "TA_CLE",
+    authDomain: "unamdd-cloud.firebaseapp.com",
+    databaseURL: "https://unamdd-cloud-default-rtdb.firebaseio.com",
+    projectId: "unamdd-cloud",
+  };
+
+  // 2. INITIALISER FIREBASE
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+
+  // 3. ACTIVER LE MODE FORET - CES 2 LIGNES
+  db.setPersistenceEnabled(true);  // Garde les données sur le téléphone
+  db.setPersistenceCacheSizeBytes(25000000); // 25MB de cache
+
+  // 4. VOIR SI ON EST ONLINE OU OFFLINE
+  var connectedRef = db.ref(".info/connected");
+  connectedRef.on("value", function(snap) {
+    if (snap.val() === true) {
+      alert("ONLINE : Sync avec le cloud");
+    } else {
+      alert("OFFLINE : Mode forêt activé");
+    }
+  });
+
+</script>
 </body>
 </html>
