@@ -609,4 +609,82 @@ function boot(){
 }
 if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+// ===== FIREBASE POUR UNAMDD =====
+const firebaseConfig = {
+  apiKey: "AIzaSyDxt1_vurSqngt7gdMqztAuLojF3wB6gSo",
+  authDomain: "unamdd-cloud.firebaseapp.com",
+  databaseURL: "https://unamdd-cloud-default-rtdb.firebaseio.com",
+  projectId: "unamdd-cloud",
+  storageBucket: "unamdd-cloud.firebasestorage.app",
+  messagingSenderId: "549491701256",
+  appId: "1:549491701256:web:d71e3fb0b65aedc8f783bd"
+};
 
+// Charger Firebase v8 compatible WebsiteToApp
+function loadFirebase() {
+  const s1 = document.createElement('script');
+  s1.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js";
+  document.head.appendChild(s1);
+  
+  const s2 = document.createElement('script');
+  s2.src = "https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js";
+  s2.onload = () => {
+    firebase.initializeApp(firebaseConfig);
+    window.db = firebase.database();
+    window.db.goOnline();
+  };
+  document.head.appendChild(s2);
+}
+loadFirebase();
+
+// ===== FONCTIONS POUR TES BOUTONS =====
+function cloudPush() {
+  if(!window.db) return showToast("Firebase pas encore chargé...");
+  showToast("Envoi au cloud...");
+  
+  // Prend toutes les données du localStorage
+  const data = {};
+  for(let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    data[key] = localStorage.getItem(key);
+  }
+  
+  window.db.ref("unamdd").set(data)
+   .then(() => showToast("✅ Envoyé avec succès"))
+   .catch(err => showToast("❌ Erreur: " + err.message));
+}
+
+function cloudPull() {
+  if(!window.db) return showToast("Firebase pas encore chargé...");
+  showToast("Récupération...");
+  
+  window.db.ref("unamdd").once("value")
+   .then((snapshot) => {
+      const data = snapshot.val();
+      if(data) {
+        // Remet tout dans localStorage
+        for(const key in data) {
+          localStorage.setItem(key, data[key]);
+        }
+        showToast("✅ Récupéré! Rechargement...");
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast("Aucune donnée dans le cloud");
+      }
+    })
+   .catch(err => showToast("❌ Erreur: " + err.message));
+}
+
+// ===== TOAST MESSAGE =====
+function showToast(msg) {
+  let toast = document.getElementById('toast');
+  if(!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast';
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:8px;z-index:9999;display:none';
+    document.body.appendChild(toast);
+  }
+  toast.innerText = msg;
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 3000);
+}
